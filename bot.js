@@ -1,5 +1,9 @@
 var HTTPS = require('https');
 var cool = require('cool-ascii-faces');
+var currentwar;
+var warlist = {};
+var attachment = false;
+var attachments = [];
 
 var botID = process.env.BOT_ID;
 
@@ -51,22 +55,58 @@ var tagAll = function(members) {
   postMessage(msg);
 }
 
+
 function respond() {
   var request = JSON.parse(this.req.chunks[0]),
-      botRegex = /cool guy/;
-	  clanRegex = /@everyone/;
+      botRegex = /^\/cool guy$/,
+      warRegex = /^\/war (.*)$/,
+      listRegex = /^\/warlist$/,
+      calloutRegex = /^\/callout (\d*)/,
+      deleteRegex = /^\/delete (\d*)$/,
+      sexRegex = /^\/sex$/;
+      clanRegex=/^\/clan$/;
 
   if(request.text && botRegex.test(request.text)) {
     this.res.writeHead(200);
-    postMessage();
-    this.res.end();
-  } else {
-    console.log("don't care");
-    this.res.writeHead(200);
+    postMessage(cool());
     this.res.end();
   }
-  
-    else if (request.text && clanRegex.test(request.text) ) {
+  else if (request.text && warRegex.test(request.text) ) {
+    this.res.writeHead(200);
+    currentwar = true;
+    var match = warRegex.exec(request.text);
+    postMessage("War has been declared against " + match[1]);
+    warlist = {};
+    this.res.end();
+  }
+
+  else if (request.text && calloutRegex.test(request.text) ) {
+    this.res.writeHead(200);
+    var match = calloutRegex.exec(request.text);
+    warlist[match[1]] = request.name; 
+    
+    postMessage("Target " + match[1] + " has been called by " + request.name);
+    this.res.end();
+  }
+   else if (request.text && listRegex.test(request.text) ) {
+    this.res.writeHead(200);
+    postMessage(pretty(warlist));
+    this.res.end();
+  }
+  else if (request.text && deleteRegex.test(request.text) ) {
+    this.res.writeHead(200);
+    var match = deleteRegex.exec(request.text);
+    delete warlist[match[1]];
+    postMessage("Call on target " + match[1] + " has been deleted.");
+    this.res.end();
+  }
+  else if (request.text && sexRegex.test(request.text) ) {
+    this.res.writeHead(200);
+    postMessage("This Chat is fucking Cancer.");
+    this.res.end();
+  }
+
+  else if (request.text && clanRegex.test(request.text) ) {
     this.res.writeHead(200);
     currentwar = true;
     
@@ -80,13 +120,19 @@ function respond() {
 
     this.res.end();
   }
-  
+
+  else {
+    console.log("don't care");
+    this.res.writeHead(200);
+    this.res.end();
+  }
+
 }
 
-function postMessage() {
+function postMessage(message) {
   var botResponse, options, body, botReq;
 
-  botResponse = cool();
+  botResponse = message;
 
   options = {
     hostname: 'api.groupme.com',
@@ -98,6 +144,15 @@ function postMessage() {
     "bot_id" : botID,
     "text" : botResponse
   };
+
+  if (attachment == true) {
+
+    body["attachments"] = attachments;
+    attachment = false;
+    attachments = [];
+  }
+
+  console.log(body);
 
   console.log('sending ' + botResponse + ' to ' + botID);
 
