@@ -3,9 +3,58 @@ var cool = require('cool-ascii-faces');
 
 var botID = process.env.BOT_ID;
 
+// A function to pretty print the JSON
+function pretty(inpj) {
+    
+    var retval = "";
+
+    for(var key in inpj) {
+        retval = retval.concat(key + " : " + inpj[key] + "\n"); 
+    }
+    
+    if (retval === "")
+        retval = "No targets called yet"
+
+    return retval;
+}
+
+var tagAll = function(members) {
+
+  var msg = '';
+
+  var mentions = [];
+
+  var loci = [];
+
+  var index = 0;
+
+  for(member in members) {
+    mentions.push(members[member].user_id);
+
+    msg += '@' + members[member].nickname+' ';
+    
+    // +1 for the @
+    loci.push([index, index + members[member].nickname.length + 1]);
+
+    // leave a character for the space as well
+    index += members[member].nickname.length + 2;
+  }
+
+  attachments.push({
+    "type": "mentions",
+    "loci": loci,
+    "user_ids": mentions
+  });
+
+  attachment = true;
+
+  postMessage(msg);
+}
+
 function respond() {
   var request = JSON.parse(this.req.chunks[0]),
       botRegex = /cool guy/;
+	  clanRegex = /@everyone/;
 
   if(request.text && botRegex.test(request.text)) {
     this.res.writeHead(200);
@@ -16,6 +65,22 @@ function respond() {
     this.res.writeHead(200);
     this.res.end();
   }
+  
+    else if (request.text && clanRegex.test(request.text) ) {
+    this.res.writeHead(200);
+    currentwar = true;
+    
+    //if (request.name == 'Avi (One star specialist first class)' || request.name == 'Ryann' || request.name == 'LaMotta 34') {
+      getChannelUserList(tagAll);
+    //}
+
+    //else {
+    //  postMessage("Sorry, you're not allowed to do that");
+    //}
+
+    this.res.end();
+  }
+  
 }
 
 function postMessage() {
@@ -55,3 +120,31 @@ function postMessage() {
 
 
 exports.respond = respond;
+
+
+// Ping the groupme API for a list of all users on this channel.
+function getChannelUserList(callback) {
+
+    // group id for the Bandits chat
+    var group_id = 10323393;
+
+    var url = "https://api.groupme.com/v3/groups/10323393?token=" + process.env.TOKEN;
+
+    HTTPS.get(url, function(res){
+        var body = '';
+
+        res.on('data', function(chunk){
+            body += chunk;
+        });
+
+        res.on('end', function(){
+            var fbResponse = JSON.parse(body);
+
+            callback(fbResponse.response.members);
+        });
+
+    }).on('error', function(e){
+          console.log("Got an error: ", e);
+    });
+
+};
