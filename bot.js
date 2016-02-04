@@ -180,8 +180,8 @@ exports.respond = respond;
 // Ping the groupme API for a list of all users on this channel.
 function getChannelUserList(callback) {
 
-    // group id for the Bandits chat
-    var group_id = 10323393;
+    // group id for the test chat
+    var group_id = process.env.GROUP_ID;
 
     var url = "https://api.groupme.com/v3/groups/10323393?token=" + process.env.TOKEN;
 
