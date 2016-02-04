@@ -68,7 +68,7 @@ function respond() {
 
   if(request.text && botRegex.test(request.text)) {
     this.res.writeHead(200);
-    postMessage(cool());
+    postMessage(cool() + process.env.GROUP_ID);
     this.res.end();
   }
   else if (request.text && warRegex.test(request.text) ) {
