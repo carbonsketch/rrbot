@@ -7,7 +7,10 @@ var botID = process.env.BOT_ID;
 
 var tagAll = function(members) {
 
-  var msg = '';
+  var msg = 'made it to tagAll function';
+  
+  /*
+
 
   var mentions = [];
 
@@ -34,6 +37,7 @@ var tagAll = function(members) {
   });
 
   attachment = true;
+  */
 
   postMessage(msg);
 }
